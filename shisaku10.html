@@ -516,13 +516,20 @@ let PK=null;const PACKS=["shisaku10_koe1.bin","shisaku10_koe2.bin"];
 function packs(){if(!PK)PK=Promise.all(PACKS.map(f=>fetch(f).then(r=>r.ok?r.arrayBuffer():null).then(b=>{if(!b)return null;const n=new DataView(b).getUint32(0,true);return{idx:JSON.parse(new TextDecoder().decode(new Uint8Array(b,4,n))),b,o:4+n}}).catch(()=>null)));return PK}
 function vload(t){if(!t)return Promise.resolve(null);if(!(t in VB))VB[t]=(async()=>{try{const ps=await packs(),k=vh(t);for(const p of ps){if(p&&p.idx[k]){const [o,l]=p.idx[k];const ab=p.b.slice(p.o+o,p.o+o+l);const c=AC();return await new Promise(res=>{try{c.decodeAudioData(ab,res,()=>res(null))}catch(e){res(null)}})}}return null}catch(e){return null}})();return VB[t]}
 const vpre=(...ts)=>ts.forEach(t=>vload(t));
-let vtok=0,vsrc=null;
-function vstop(){vtok++;try{if(vsrc)vsrc.stop()}catch(e){}vsrc=null;try{speechSynthesis.cancel()}catch(e){}}
+// 試作10の直し（11/15 ご主人「読み上げる前に切れてるとこある」）：次の声は前の声を途中で止めず、今の言葉が終わってから一番新しい文を言う。?vold=1 で前の止め方（比べる用）
+const VOLD=QS.get("vold")==="1";VST.cut=0;
+let vtok=0,vsrc=null,vplay=false,vbusy=false,vnext=null;
+function vstop(){vtok++;try{if(vsrc&&vplay){VST.cut++;vsrc.stop()}}catch(e){}vsrc=null;vplay=false;try{if(speechSynthesis.speaking)VST.cut++;speechSynthesis.cancel()}catch(e){}}
+async function playOne(p){const b=await Promise.race([vload(p),new Promise(r=>setTimeout(()=>r(null),1500))]);
+ if(b){VST.hit++;await new Promise(async res=>{let done=false;const fin=()=>{if(done)return;done=true;vplay=false;res()};try{const c=AC();if(c.state!=="running"){try{await c.resume()}catch(e){}}const n=c.createBufferSource();n.buffer=b;n.connect(c.destination);n.onended=fin;vsrc=n;vplay=true;n.start(c.currentTime+0.05);setTimeout(fin,b.duration*1000+700)}catch(e){fin()}})}
+ else{VST.miss++;VST.list.push(p);await tts(p)}}
+async function sayNew(...parts){parts=parts.filter(Boolean);if(!parts.length)return;if(vbusy){vnext=parts;return}vbusy=true;let q=parts;
+ while(q){vnext=null;for(const p of q){await playOne(p);if(vnext)break}q=vnext}vbusy=false}
 function tts(t){return new Promise(res=>{try{const u=new SpeechSynthesisUtterance(t);u.lang="ja-JP";u.rate=1.0;u.onend=u.onerror=()=>res();speechSynthesis.speak(u);setTimeout(res,1000+t.length*250)}catch(e){res()}})}
-async function say(...parts){vstop();const tok=vtok;
+async function say(...parts){if(!VOLD)return sayNew(...parts);vstop();const tok=vtok;
  for(const p of parts.filter(Boolean)){if(tok!==vtok)return;
   const b=await Promise.race([vload(p),new Promise(r=>setTimeout(()=>r(null),1500))]);if(tok!==vtok)return;
-  if(b){VST.hit++;await new Promise(res=>{try{const c=AC(),n=c.createBufferSource();n.buffer=b;n.connect(c.destination);n.onended=()=>res();vsrc=n;if(c.state!=="running")c.resume();n.start();setTimeout(res,b.duration*1000+400)}catch(e){res()}})}
+  if(b){VST.hit++;await new Promise(res=>{try{const c=AC(),n=c.createBufferSource();n.buffer=b;n.connect(c.destination);n.onended=()=>{vplay=false;res()};vsrc=n;vplay=true;if(c.state!=="running")c.resume();n.start();setTimeout(res,b.duration*1000+400)}catch(e){res()}})}
   else{VST.miss++;VST.list.push(p);await tts(p)}}}
 const colorLine=(c)=>`${COLN[c]}の こ。${WIN[c]?COLN[WIN[c]]+"に つよいよ":"だれとも なかよし。つよくも よわくも ないよ"}`;
 const FIXV=["たまごを トントン してね","うまれたよ！","もうちょっと まってね","つよい ちからを ぶつけて、3てん とったら かち","こうか ばつぐん","やった！ 1てん","やった！ 2てん","1てん","2てん","かった！","おしかった！ つぎは かてるよ","ずかん","どの ちからに する？ ほのお、くさ、みず、ひかり、やみ、ノーマル","いきもの。だれに する？","からだ。なにで できてる？","パーツ。なにが つく？"];
