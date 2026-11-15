@@ -403,7 +403,7 @@ h1{padding-right:66px}
 .ip2{height:78px}.ip.el-y{margin-top:6px}
 .ip:nth-child(4) span,.ip:nth-child(4) em,.ip:nth-child(5) span,.ip:nth-child(5) em{animation-delay:.6s!important}
 .nob{display:flex;align-items:center;gap:2px;background:#fff;border-radius:10px;padding:4px 10px;font-size:22px}
-</style>
+.art.s0 .pa,.art.s0 .pb,.art.s0 .pc{display:none}.art.s0{box-shadow:0 0 0 2px #1a1a3a;filter:saturate(.85)}.art.s1 .pb,.art.s1 .pc{display:none}.art.s1{box-shadow:0 0 0 3px #fff,0 0 0 5px #1a1a3a}.art.s2{box-shadow:0 0 22px 6px var(--ec),0 0 0 3px #fff}.art.s3{box-shadow:0 0 0 3px #fff3b0,0 0 0 7px #e0a400,0 0 34px 12px #ffd84a;animation:s4g 1.8s ease-in-out infinite}.art.s4{background:conic-gradient(from var(--a,0deg),#ff4a2a,#ffd84a,#4cd964,#3ca8ff,#a463ff,#ff4a2a);padding:7px;box-shadow:0 0 44px 16px #ffb320,0 0 90px 30px #ff7a2a88;animation:s5g 1.4s ease-in-out infinite,s5t 3.2s ease-in-out infinite;transform-style:preserve-3d}.art.s4 img{transform:translateZ(18px) scale(1.04)}@property --a{syntax:"<angle>";initial-value:0deg;inherits:false}@keyframes s4g{50%{box-shadow:0 0 0 3px #fff3b0,0 0 0 7px #e0a400,0 0 46px 18px #ffd84a}}@keyframes s5g{0%{--a:0deg}50%{box-shadow:0 0 60px 22px #ff7a2a,0 0 110px 40px #ffd84a88}100%{--a:360deg}}@keyframes s5t{0%,100%{transform:perspective(500px) rotateY(-8deg) translateY(0)}50%{transform:perspective(500px) rotateY(8deg) translateY(-6px)}}</style>
 </head><body><div id="app"></div>
 <script>
 "use strict";
@@ -562,16 +562,19 @@ function wz11(z,p,taken){taken=taken||save.mons.map(x=>x.sk||"");let best=null,b
  [[ZW1,PW1],[ZW2,PW2],[ZW1,PW2],[ZW2,PW1]].forEach(([zw,pw])=>{const sk=zw[z]+" "+pw[p];let s=0;for(const t of taken)if(t&&wsim(sk,t))s++;if(s<bs){bs=s;best={sk,skp:[zw[z],pw[p]]}}});return best}
 const skSay=(mo)=>mo.skp?["ひっさつは",mo.skp[0],mo.skp[1]]:[...skSay(mo)];
 // 試作11：作り置きの絵120枚（いきもの20×属性6。同じいきものでも属性ごとに体の作りが違う）。箱 shisaku11_e.bin を1回だけ読む
+// 試作11 差し替え：作り置きの絵ごとの「見た目の星」（前の話を知らない点検役が伏せて付けた）。星と見た目がずれないように使う
+const E11T={"ogre_k":2,"whale_n":1,"scorpion_b":3,"whale_y":3,"unicorn_n":1,"dog_r":4,"scorpion_k":3,"dragon_y":4,"elephant_k":2,"golem_k":2,"unicorn_g":2,"eagle_b":3,"elephant_g":2,"dog_y":3,"dino_g":2,"dragon_b":3,"fox9_n":2,"golem_b":2,"eagle_r":4,"eagle_n":1,"whale_g":2,"lion_r":5,"golem_y":4,"elephant_y":4,"dino_n":1,"lion_b":4,"cat_k":3,"pegasus_y":4,"pegasus_k":2,"cat_y":4,"fox9_y":5,"eagle_g":2,"scorpion_y":4,"dragon_k":3,"rabbit_g":2,"turtle_y":3,"rabbit_y":3,"lion_k":5,"fox9_g":3,"dog_g":2,"unicorn_k":3,"dragon_g":2,"lion_g":3,"phoenix_g":2,"whale_k":2,"shark_y":3,"unicorn_b":3,"cat_b":3,"unicorn_y":5,"pegasus_g":3,"elephant_b":3,"scorpion_g":2,"golem_g":2,"dino_k":3,"cat_r":4,"ogre_y":3,"turtle_k":2,"dino_y":3,"eagle_k":3,"ogre_g":2,"pegasus_n":1,"phoenix_k":4,"dog_b":2,"fox9_k":4,"pegasus_b":4,"eagle_y":3,"cat_g":2,"turtle_n":1,"dog_k":2,"turtle_g":2,"ogre_b":2,"unicorn_r":4,"rabbit_b":2,"lion_y":5,"dog_n":1,"dragon_n":1,"dino_b":3,"elephant_n":1,"phoenix_y":4,"cat_n":1,"shark_k":3,"lion_n":1,"elephant_r":5,"whale_b":2};
+const TIERFIX=QS.get("tierfix")!=="0";
 let E11=null,E11P=null;
 function e11(){if(!E11P)E11P=fetch("shisaku11_e.bin").then(r=>r.ok?r.arrayBuffer():null).then(b=>{if(!b)return null;const n=new DataView(b).getUint32(0,true),idx=JSON.parse(new TextDecoder().decode(new Uint8Array(b,4,n))),o={};
   for(const k in idx){const [p,l]=idx[k];o[k]=URL.createObjectURL(new Blob([new Uint8Array(b,4+n+p,l)],{type:"image/jpeg"}))}E11=o;return o}).catch(()=>null);return E11P}
 setTimeout(e11,1200);
 const pickR=()=>{const x=Math.random();return x<.35?0:x<.65?1:x<.88?2:3};
-function fromE11(aid,col,r){const A=CARDS.a.find(x=>x.id===aid)||CARDS.a[0],zs=CARDS.z.filter(x=>x.c===col),z=zs[Math.floor(Math.random()*zs.length)]||CARDS.z[0],
+function fromE11(aid,col,r){if(r==null&&E11T[aid+"_"+col])r=E11T[aid+"_"+col]-1;const A=CARDS.a.find(x=>x.id===aid)||CARDS.a[0],zs=CARDS.z.filter(x=>x.c===col),z=zs[Math.floor(Math.random()*zs.length)]||CARDS.z[0],
   p=CARDS.p[Math.floor(Math.random()*CARDS.p.length)],w=wz11(z.id,p.id),nm=N11["z|"+z.id+"|"+aid]||A.n;
  return{id:"e:"+aid+":"+col,st11:aid+"_"+col,nm,col,k:A.k,body:"kata",part:p.part,r:r==null?pickR():r,pitta:false,sk:w.sk,skp:w.skp}}
 function e11Team(n,col0,avoid){const cols=col0||ELS.slice().sort(()=>Math.random()-.5).slice(0,n),used=new Set(avoid||[]),t=[];
- cols.forEach(c=>{const as=CARDS.a.filter(a=>!used.has(a.id)&&E11&&E11[a.id+"_"+c]);const a=as[Math.floor(Math.random()*as.length)];if(a){used.add(a.id);t.push(fromE11(a.id,c))}});return t}
+ const mx=arguments[3]||5;cols.forEach(c=>{const as=CARDS.a.filter(a=>!used.has(a.id)&&E11&&E11[a.id+"_"+c]&&(E11T[a.id+"_"+c]||1)<=mx);const a=as[Math.floor(Math.random()*as.length)];if(a){used.add(a.id);t.push(fromE11(a.id,c))}});return t}
 // 名前（試作6）：まほう・からだ・いきものの音を組み合わせ、ずかんにある名前とかぶらず、頭2字・終わり2字が似ない物を選ぶ
 const FIND=(k,id)=>CARDS[k].find(x=>x.id===id)||{s:["モン"]};
 function genName(a,m,z,taken){taken=taken||save.mons.map(x=>x.nm);const pool=[];
@@ -580,7 +583,7 @@ function genName(a,m,z,taken){taken=taken||save.mons.map(x=>x.nm);const pool=[];
  const free=pool.filter(n=>!taken.includes(n));const cand=(free.length?free:pool).map(n=>({n,s:taken.filter(t=>sim(n,t)).length+Math.random()*.5}));
  cand.sort((x,y)=>x.s-y.s);return free.length?cand[0].n:cand[0].n+(taken.filter(t=>t.startsWith(cand[0].n)).length+1)}
 function fxRain(c,n){let s="";for(let i=0;i<n;i++)s+=`<i class="fx fx-${c}" style="left:${(i*37)%100}%;--t:${8+(i*53)%80}%;--d:${(i*0.23)%2.4}s;--z:${18+(i*7)%22}px">${FXI[c]}</i>`;return s}
-function art(mo,cls){const i=FXI[mo.col],b=ICON[mo.col];return`<div class="art ec-${mo.col} ${cls||""}"><img src="${imgOf(mo)}" alt="${mo.nm}"><i class="pa">${i}</i><i class="pb">${i}</i><i class="pc">${i}</i><b class="ebd">${b}</b></div>`}
+function art(mo,cls){const i=FXI[mo.col],b=ICON[mo.col];return`<div class="art ec-${mo.col} s${mo.r|0} ${cls||""}"><img src="${imgOf(mo)}" alt="${mo.nm}"><i class="pa">${i}</i><i class="pb">${i}</i><i class="pc">${i}</i><b class="ebd">${b}</b></div>`}
 function styleFor(mo){if(mo.r>=4)return"legend";const a=mo.ix?CARDS.a[mo.ix[0]]:null,g=a?(a.g||a.k):"chikara";if(g==="nakayoshi")return mo.r>=3?"cool":"cute";if(mo.body==="kata")return mo.r>=1?"mecha":"cute";if(mo.body==="fuwa")return mo.r>=3?"mystic":"cute";if(g==="chikara")return"cool";if(g==="subaya")return mo.r>=2&&(mo.col==="b"||mo.col==="y"||mo.col==="k")?"mystic":"cool";return mo.r>=2?"mecha":"cute"}
 // この こが つよい あいて（大きい自分の印が、小さくなった相手の印をやっつける絵）
 function beatPic(c){const l=WIN[c];if(!l)return`<span class="nob">${ICON[c]}🤝</span>`;return`<span class="beat"><span class="bw">${ICON[c]}</span><span class="bl">${ICON[l]}<i>💦</i></span></span>`}
@@ -654,7 +657,7 @@ ${ck.map((d,i)=>`<path class="ck" id="c${i}" d="${d}" fill="none" stroke="#1a1a3
  const auto=()=>{if(phase!=="wait")return;const cap=res?5:4;if(lv<cap){setLv(lv+1);const m=E("em");if(m)m.textContent=lines[Math.min(lv-1,3)]}tryHatch();eggT.push(setTimeout(auto,2300))};
  eggT.push(setTimeout(auto,2300));eggT.push(setTimeout(()=>{const v=document.querySelector(".egs .vx");if(v)v.remove()},1300));
  eggT.push(setTimeout(()=>{if(phase==="wait"&&!res){const m=E("em");if(m)m.textContent="もうちょっと まってね";say("もうちょっと まってね")}},20000));
- drawArt(mo).then(async r=>{if(r.img){await putImg(mo.id,r.img);mo.fb=null}else{await e11();const k11=CARDS.a[mo.ix[0]].id+"_"+mo.col;if(E11&&E11[k11]){mo.st11=k11}else{const pool=STOCK.filter(s=>s.col===(STK[mo.col]||mo.col)),s=pool[Math.floor(Math.random()*pool.length)]||STOCK[0];mo.stock=s.id}mo.fb=r.fb}
+ drawArt(mo).then(async r=>{if(r.img){await putImg(mo.id,r.img);mo.fb=null}else{await e11();const aid=CARDS.a[mo.ix[0]].id,k11=aid+"_"+mo.col,want=mo.r+1;let kk=E11&&E11[k11]?k11:null;if(E11&&TIERFIX){const d0=kk?Math.abs((E11T[kk]||3)-want):9;let best=null,bd=9;for(const c of ELS){const k=aid+"_"+c;if(!E11[k])continue;const dd=Math.abs((E11T[k]||3)-want);if(dd<bd){bd=dd;best=k}}if(best&&d0-bd>=2)kk=best}if(E11&&E11[k11+"_s"+want])kk=k11+"_s"+want;if(kk){mo.st11=kk}else{const pool=STOCK.filter(s=>s.col===(STK[mo.col]||mo.col)),s=pool[Math.floor(Math.random()*pool.length)]||STOCK[0];mo.stock=s.id}mo.fb=r.fb}
   const im=new Image();im.src=imgOf(mo);try{await im.decode()}catch(e){}res=r;tryHatch()});
  function tryHatch(){if(phase!=="wait"||!res)return;if(performance.now()-t0<4500||lv<4){return}phase="stars";setLv(5);
   const sr=E("sr"),m=E("em");if(m)m.textContent="ほしが ひかるよ…";let i=0;
@@ -676,7 +679,7 @@ function book(){h(`<h2>ずかん ${save.mons.length}</h2>${save.mons.length?`<p 
 function bookOne(i){const mo=save.mons[i];h(`${cardHTML(mo)}<button class="big" data-g="tm${i}">⚔️ この こで たたかう</button><button class="big sub" data-g="book">もどる</button>`);say(mo.nm)}
 // ---- たたかう（なかまの確認 → 戦い）
 function myTeam(){const ms=save.team.map(id=>save.mons.find(m=>m.id===id)).filter(Boolean);for(const m of save.mons){if(ms.length>=3)break;if(!ms.includes(m))ms.push(m)}
- if(E11){const h11=e11Team(3-ms.length,null,ms.map(m=>m.st11?m.st11.split("_")[0]:null).filter(Boolean));h11.forEach(f=>{f.r=Math.min(f.r,2);f.help=true;ms.push(f)})}
+ if(E11){const h11=e11Team(3-ms.length,null,ms.map(m=>m.st11?m.st11.split("_")[0]:null).filter(Boolean),3);h11.forEach(f=>{f.help=true;ms.push(f)})}
  const help=STOCK.filter(s=>s.r<=2).sort(()=>Math.random()-.5);while(ms.length<3){const s=help.shift();const f=fromStock(s);f.help=true;ms.push(f)}return ms.slice(0,3)}
 let pendingTeam=null;
 function teamScreen(){const t=myTeam();pendingTeam=t;const helpN=t.filter(m=>m.help).length;
